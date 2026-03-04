@@ -207,7 +207,7 @@ Row Level Security (RLS) policies are enabled in Supabase to ensure:
 
 ---
 
-# Approach (200 Words)
+# Approach
 
 This project implements a full-stack business simulation game using Next.js and Supabase. The primary goal was to create a clean architecture that separates frontend interaction, backend simulation logic, and persistent storage. The frontend is built using Next.js with React and TypeScript, providing a simple interface where users can input business decisions for each quarter such as price, hiring engineers or sales staff, and adjusting salary levels. Client-side validation ensures that inputs are valid before sending requests to the backend.
 
