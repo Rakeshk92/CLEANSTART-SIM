@@ -1,104 +1,222 @@
-# CleanStart Simulation Game (Full-Stack)
+# CleanStart Business Simulation Game
 
-A full-stack business simulation game built with **Next.js (App Router + TypeScript)** and **Supabase (Auth + Postgres + RLS)**.
+A full-stack business simulation game built with **Next.js, TypeScript, and Supabase**.
 
-Players run a startup quarter-by-quarter by choosing:
-- Unit price
-- Engineers to hire
-- Sales staff to hire
-- Salary percentage (relative to industry average)
-- Desk capacity (office seats)
+This application simulates running a startup company where the player makes strategic business decisions each quarter such as pricing a product, hiring employees, and managing salaries. The goal is to grow the company profitably without running out of cash.
 
-The app simulates business outcomes (demand, units sold, revenue, payroll, profit, cash, and quality) and stores a permanent quarter-by-quarter history.
+The system calculates market demand, revenue, payroll costs, and profit based on the player’s decisions and stores the results for each quarter.
 
 ---
 
-## Live Features Implemented
+# Features
 
-### ✅ Authentication (Supabase Auth)
-- Users sign in and only see their own game data.
-- The UI redirects to `/` if not logged in.
-
-### ✅ Database + Security (Supabase Postgres + RLS)
-Two tables are used:
-
-#### `games` table (current game state)
-Stores the active game for a user:
-- `cash`, `engineers`, `sales_staff`, `desk_capacity`
-- `product_quality`, `cumulative_profit`
-- `current_year`, `current_quarter`
-- `ended_at`, `end_reason` (`bankrupt` or `won`)
-
-#### `quarters` table (quarter history)
-Stores every quarter’s decisions and computed outcomes:
-- Inputs: `price`, `hire_engineers`, `hire_sales`, `salary_pct`
-- Outputs: `demand`, `units_sold`, `revenue`, `total_payroll`,
-  `new_hire_cost`, `net_income`, `cash_end`, `quality_end`
-
-**Row Level Security** ensures a user can only read/write their own records.
+- User authentication using Supabase
+- Persistent game state stored in database
+- Quarter-by-quarter business simulation
+- Hiring engineers and sales staff
+- Product pricing strategy
+- Salary adjustment relative to industry average
+- Desk capacity management
+- Automatic financial calculations (revenue, payroll, profit)
+- Quarter history table
+- Charts showing financial trends
+- Office visualization of employees and desks
+- Win / lose conditions
+- Start new game functionality
 
 ---
 
-## Backend Logic
+# Tech Stack
 
-### `runQuarter()` Simulation Engine
-The simulation engine computes quarterly outcomes based on:
-- Price sensitivity
-- Quality growth based on engineers
-- Production capacity (engineers)
-- Sales capacity (sales team)
-- Payroll cost based on salary percentage
-- Hiring cost per new hire
+Frontend
+- Next.js (App Router)
+- React
+- TypeScript
 
-End conditions:
-- **Lose** if cash ≤ 0 → `end_reason = "bankrupt"`
-- **Win** when reaching the final year threshold → `end_reason = "won"`
+Backend
+- Next.js API Routes
 
-### API Route: `/api/advance`
-When the player clicks **Advance Quarter**, the frontend calls:
-- `POST /api/advance`
+Database
+- Supabase (PostgreSQL)
 
-The route:
-1. Validates auth token
-2. Loads the game row (RLS protected)
-3. Enforces desk capacity server-side
-4. Runs the simulation (`runQuarter`)
-5. Inserts a new row in `quarters`
-6. Updates the game state in `games`
-7. Sets `ended_at` and `end_reason` if game ends
+Authentication
+- Supabase Auth
+
+Visualization
+- Custom React charts
 
 ---
 
-## Frontend UI
+# Database Design
 
-### Main Screen (`/game`)
-Shows:
-- Current Year / Quarter
-- Cash, Quality, Headcount, Desk Capacity, Cumulative Profit
-- Inputs to set decisions for next quarter
-- Button to **Add Desk**
-- Button to **Advance Quarter**
-- Quarter History table
-- Charts (Cash + Net Income) for recent quarters
-- “Office” visualization mapping people to desks
+The application uses two main database tables.
 
-### End Screen
-When game ends, UI displays the final outcome:
-- “Game ended: bankrupt / won”
-- A **Start New Game** button to create a new run
+## Games Table
+
+Stores the current state of a user's simulation.
+
+Fields include:
+
+- id
+- user_id
+- cash
+- engineers
+- sales_staff
+- desk_capacity
+- product_quality
+- cumulative_profit
+- current_year
+- current_quarter
+- ended_at
+- end_reason
+
+Each user can have one active game.
 
 ---
 
-## Setup Instructions (Run Locally)
+## Quarters Table
 
-### 1) Install dependencies
-```bash
+Stores the historical results of every simulated quarter.
+
+Fields include:
+
+- game_id
+- year
+- quarter
+- price
+- hire_engineers
+- hire_sales
+- salary_pct
+- demand
+- units_sold
+- revenue
+- total_payroll
+- new_hire_cost
+- net_income
+- cash_end
+- quality_end
+
+This allows the UI to display quarter history and charts.
+
+---
+
+# Game Rules
+
+Each quarter the player decides:
+
+- Product price
+- Number of engineers to hire
+- Number of sales staff to hire
+- Salary percentage relative to industry average
+
+The simulation then calculates:
+
+- Market demand
+- Units sold
+- Revenue
+- Payroll costs
+- Hiring costs
+- Net income
+- Ending cash
+- Product quality
+
+The game continues quarter by quarter until:
+
+- The company runs out of cash (bankruptcy)
+- The player reaches the final simulation year (win condition)
+
+---
+
+# Setup Instructions
+
+## 1 Install Dependencies
+
+Run:
 npm install
 
 
+---
 
-This project implements a full-stack business simulation game using Next.js and Supabase. The frontend is built with Next.js (App Router) and TypeScript, providing a clean UI for users to make quarterly decisions such as product price, hiring engineers/sales staff, salary percentage, and desk capacity. Client-side validation prevents invalid inputs before requests are sent.
+## 2 Configure Environment Variables
 
-The backend uses a Next.js API route (/api/advance) to securely process the simulation. The route authenticates the request using the user’s Supabase session token, loads the active game state, enforces desk capacity rules server-side, runs the simulation engine (runQuarter), writes a quarter history record, and updates the game state for the next quarter. The simulation computes demand, units sold (bounded by production/sales capacity), revenue, payroll, hiring costs, profit, cash balance, and product quality. Game-ending conditions are handled by setting ended_at and end_reason to support a final win/lose screen.
+Create a file named `.env.local` in the root of the project.
 
-Supabase Postgres stores data in two tables: games for current state and quarters for historical results. Row Level Security (RLS) policies ensure users can only access their own games and quarter history. Charts and a quarter history table provide visibility into financial trends and decision outcomes over time.
+Add:
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+---
+
+## 3 Run the Application
+
+Start the development server:
+npm run dev
+
+
+Open the application:
+http://localhost:3000
+
+
+---
+
+# Application Flow
+
+1. User logs in using Supabase authentication.
+2. If no active game exists, a new game is automatically created.
+3. The player makes business decisions for the next quarter.
+4. The frontend sends those decisions to the backend API.
+5. The backend simulation engine calculates the business results.
+6. The new quarter data is saved in the database.
+7. The game state updates and charts refresh.
+
+---
+
+# Simulation Engine
+
+The simulation engine calculates business outcomes using several factors:
+
+Demand is influenced by:
+- Product quality
+- Price elasticity
+
+Production capacity depends on:
+- Number of engineers
+
+Sales capacity depends on:
+- Number of sales staff
+
+Costs include:
+- Payroll based on salary percentage
+- Hiring costs for new employees
+
+Profit is calculated as:
+Net Income = Revenue - Payroll - Hiring Costs
+
+
+The updated cash balance determines whether the game continues or ends.
+
+---
+
+# Security
+
+Row Level Security (RLS) policies are enabled in Supabase to ensure:
+
+- Users can only access their own game
+- Users can only read their own quarter history
+- Unauthorized access to other users' data is prevented
+
+---
+
+# Approach (200 Words)
+
+This project implements a full-stack business simulation game using Next.js and Supabase. The primary goal was to create a clean architecture that separates frontend interaction, backend simulation logic, and persistent storage. The frontend is built using Next.js with React and TypeScript, providing a simple interface where users can input business decisions for each quarter such as price, hiring engineers or sales staff, and adjusting salary levels. Client-side validation ensures that inputs are valid before sending requests to the backend.
+
+The backend logic is implemented using a Next.js API route that processes the simulation when the player advances a quarter. The API authenticates the request using the Supabase session token, loads the current game state from the database, and runs the simulation engine to calculate demand, revenue, payroll expenses, hiring costs, net income, and product quality updates. The results are then stored in a quarters table while the current game state is updated in the games table.
+
+Supabase PostgreSQL is used for persistent storage and authentication. Row Level Security policies ensure that users can only access their own game data. The UI displays key financial metrics, quarter history, and charts to help visualize business performance over time.
+
+---
+
+# Author
+
+Rakesh Reddy
